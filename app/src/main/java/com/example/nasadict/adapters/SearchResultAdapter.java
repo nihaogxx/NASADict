@@ -26,6 +26,11 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         this.list = list;
     }
 
+    public void setList(List<SingleItem> list){
+        this.list = list;
+        notifyDataSetChanged();
+    }
+
     @Override
     public SearchResultViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.single_item, parent, false);

@@ -19,11 +19,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SearchRepository {
     private static SearchRepository instance;
-    private MutableLiveData<List<SingleItem>> dataSet = new MutableLiveData<>();;
+    private MutableLiveData<List<SingleItem>> dataSet = new MutableLiveData<>();
     private static String URL = "https://images-api.nasa.gov/";
     private static String TAG = "Repository";
 
-    private Retrofit retrofit = new Retrofit.Builder()
+    Retrofit retrofit = new Retrofit.Builder()
             .baseUrl(URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build();
@@ -35,7 +35,7 @@ public class SearchRepository {
         }
         return instance;
     }
-    public LiveData<List<SingleItem>> getSearchResult(String query){
+    public void getSearchResult(String query){
 
         Call<ResponseDTO> call = nasaRetrofitService.search(query);
         call.enqueue(new Callback<ResponseDTO>() {
@@ -53,7 +53,7 @@ public class SearchRepository {
                         Log.d(TAG, "new item " + singleItem.getTitle());
                         data.add(singleItem);
                     }
-                    dataSet.postValue(data);
+                    dataSet.setValue(data);
                 }
                 else {
                     Log.d(TAG, "onResponse: " + response);
@@ -66,7 +66,6 @@ public class SearchRepository {
 
             }
         });
-        return dataSet;
     }
 
     public LiveData<List<SingleItem>> getDataSet() {

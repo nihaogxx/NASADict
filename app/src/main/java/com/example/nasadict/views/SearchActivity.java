@@ -7,14 +7,17 @@ import android.view.Menu;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.nasadict.R;
 import com.example.nasadict.adapters.SearchResultAdapter;
+import com.example.nasadict.models.SingleItem;
 import com.example.nasadict.viewmodels.SearchResultViewModel;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SearchActivity extends AppCompatActivity {
     private String mQuery;
@@ -32,7 +35,8 @@ public class SearchActivity extends AppCompatActivity {
 
         //ViewModel
         mResultViewModel = new ViewModelProvider(this).get(SearchResultViewModel.class);
-        mResultViewModel.getList().observe(this, singleItems -> mSearchResultAdapter.notifyDataSetChanged());
+        mResultViewModel.init();
+        mResultViewModel.getList().observe(this, singleItems -> mSearchResultAdapter.setList(singleItems));
         initRecyclerView();
     }
 
@@ -47,10 +51,6 @@ public class SearchActivity extends AppCompatActivity {
         // initialize searchView
         mSearchView = (SearchView) menu.findItem(R.id.search).getActionView();
         mSearchView.setQueryHint("Search here...");
-        // enable assisted search
-     /*   SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE) ;
-        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));*/
-
         mSearchView.setIconified(false);
         mSearchView.setOnQueryTextListener(mOnQueryTextListener);
 
@@ -62,7 +62,6 @@ public class SearchActivity extends AppCompatActivity {
         public boolean onQueryTextSubmit(String query) {
             mQuery = query;
             mSearchView.clearFocus();
-            Log.d("QUERY", query);
             // do search
             mResultViewModel.getSearchResult(query);
             return true;
