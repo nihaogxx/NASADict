@@ -1,6 +1,9 @@
 package com.example.nasadict.models;
 
-public class SingleItem {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class SingleItem implements Parcelable {
     private String image;
     private String title;
     private String description;
@@ -12,6 +15,25 @@ public class SingleItem {
         this.description = description;
         this.date_created = date_created;
     }
+
+    protected SingleItem(Parcel in) {
+        image = in.readString();
+        title = in.readString();
+        description = in.readString();
+        date_created = in.readString();
+    }
+
+    public static final Creator<SingleItem> CREATOR = new Creator<SingleItem>() {
+        @Override
+        public SingleItem createFromParcel(Parcel in) {
+            return new SingleItem(in);
+        }
+
+        @Override
+        public SingleItem[] newArray(int size) {
+            return new SingleItem[size];
+        }
+    };
 
     public void setImage(String image) {
         this.image = image;
@@ -43,5 +65,18 @@ public class SingleItem {
 
     public String getDate_created() {
         return date_created;
+    }
+
+    @Override
+    public int describeContents() {
+        return hashCode();
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(image);
+        parcel.writeString(title);
+        parcel.writeString(description);
+        parcel.writeString(date_created);
     }
 }

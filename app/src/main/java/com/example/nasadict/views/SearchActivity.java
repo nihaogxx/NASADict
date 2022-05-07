@@ -7,6 +7,8 @@ import android.view.Menu;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,7 +21,7 @@ import com.example.nasadict.viewmodels.SearchResultViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements SearchResultAdapter.OnItemListener {
     private String mQuery;
     private RecyclerView mRecyclerView;
     private SearchResultAdapter mSearchResultAdapter;
@@ -74,7 +76,7 @@ public class SearchActivity extends AppCompatActivity {
     };
 
     private void initRecyclerView() {
-        mSearchResultAdapter = new SearchResultAdapter(this, new ArrayList<>());
+        mSearchResultAdapter = new SearchResultAdapter(this, new ArrayList<>(), this);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mSearchResultAdapter);
     }
@@ -83,5 +85,15 @@ public class SearchActivity extends AppCompatActivity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("query", mQuery);
+    }
+
+    @Override
+    public void onItemClicked(int position) {
+        ItemDetailFragment itemDetailFragment = new ItemDetailFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("item", mResultViewModel.getList().getValue().get(position));
+        itemDetailFragment.setArguments(bundle);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.recyclerview, itemDetailFragment, "SearchActivity").addToBackStack(null).commit();
     }
 }
