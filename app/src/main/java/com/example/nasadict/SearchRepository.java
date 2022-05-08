@@ -23,7 +23,7 @@ public class SearchRepository {
     private MutableLiveData<Boolean> mLoading = new MutableLiveData<>();
     private static final String URL = "https://images-api.nasa.gov/";
     private static final String TAG = "Repository";
-
+    // API service
     private NASARetrofitService nasaRetrofitService = new Retrofit.Builder()
             .baseUrl(URL)
             .addConverterFactory(GsonConverterFactory.create())
@@ -36,13 +36,14 @@ public class SearchRepository {
         }
         return instance;
     }
-    public void getSearchResult(String query, int page, boolean isNewResult){
+
+    public void getSearchResult(String query, int page, boolean isNewSearch){
 
         Call<ResponseDTO> call = nasaRetrofitService.search(query, page);
         call.enqueue(new Callback<ResponseDTO>() {
             @Override
             public void onResponse(Call<ResponseDTO> call, retrofit2.Response<ResponseDTO> response) {
-                Log.d(TAG, response.toString());
+                Log.d(TAG, "onResponse: " + response);
                 if(response.isSuccessful() && response.body() != null){
                     ArrayList<SingleItemDTO> items = response.body().getCollection().getItems();
                     List<SingleItem> data = new ArrayList<>();
@@ -54,13 +55,15 @@ public class SearchRepository {
                         SingleItem singleItem = new SingleItem(image, title, description, date_created);
                         data.add(singleItem);
                     }
-                    if(isNewResult){
+                    if(isNewSearch){
                         dataSet.setValue(data);
                     }
                     else {
                         List<SingleItem> current = dataSet.getValue();
-                        current.addAll(data);
-                        dataSet.setValue(current);
+                        if(current != null){
+                            current.addAll(data);
+                            dataSet.setValue(current);
+                        }
                     }
                     mLoading.setValue(false);
                 }

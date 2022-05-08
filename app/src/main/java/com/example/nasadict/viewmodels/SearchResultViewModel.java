@@ -1,8 +1,6 @@
 package com.example.nasadict.viewmodels;
 
 import android.app.Application;
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -20,8 +18,6 @@ public class SearchResultViewModel extends AndroidViewModel {
     private MutableLiveData<Boolean> mLoading;
     private MutableLiveData<String> mQuery;
     private static final int PAGE_COUNT_LIMIT = 100;
-    private static final String TAG = "ViewModel";
-
 
     public SearchResultViewModel(@NonNull Application application) {
         super(application);
@@ -36,31 +32,23 @@ public class SearchResultViewModel extends AndroidViewModel {
         mQuery = new MutableLiveData<>();
     }
 
-    private void getSearchResult(String query, int page, boolean isNewResult){
-        mRepository.getSearchResult(query, page, isNewResult);
+    private void getSearchResult(String query, int page, boolean isNewSearch){
+        mRepository.getSearchResult(query, page, isNewSearch);
+    }
+
+    public void newSearch(String query) {
+        resetState();
+        incrementPage();
+        getSearchResult(query, mPage.getValue(), true);
     }
 
     public void nextPage() {
         // when it is not the first page && =! page count limit(100)
         if (mPage.getValue() > 0 && mPage.getValue() < PAGE_COUNT_LIMIT){
             mLoading.setValue(true);
-            Log.d(TAG, "next page: " + mLoading.getValue());
             incrementPage();
-            Log.d(TAG, "page value for next search:" + mPage.getValue());
             mRepository.getSearchResult(mQuery.getValue(), mPage.getValue(), false);
         }
-    }
-
-    public void newSearch(String query) {
-        resetState();
-        incrementPage();
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Log.d(TAG, "page value for new search:" + mPage.getValue());
-        getSearchResult(query, mPage.getValue(), true);
     }
 
     private void resetState(){

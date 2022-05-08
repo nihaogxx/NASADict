@@ -1,7 +1,6 @@
 package com.example.nasadict.adapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nasadict.models.SingleItem;
-import com.example.nasadict.models.SingleItemDTO;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -35,11 +33,6 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.list = new ArrayList<>();
     }
 
-    public void setList(List<SingleItem> list){
-        this.list = list;
-        notifyDataSetChanged();
-    }
-
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
@@ -48,6 +41,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             return new SearchResultViewHolder(view, onItemListener);
         }
 
+        // viewType = LOADING
         View view = LayoutInflater.from(context).inflate(R.layout.item_loading, parent, false);
         return new LoadingViewHolder(view);
     }
@@ -74,6 +68,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return (position == list.size() - 1 && isLoadingAdded) ? LOADING : ITEM;
     }
 
+    //ViewHolders
     public class SearchResultViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView mImageView;
         TextView mTextView;
@@ -89,12 +84,30 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         @Override
         public void onClick(View view) {
-            Log.d("adapter", "view holder clicked");
             mOnItemListener.onItemClicked(getBindingAdapterPosition());
         }
     }
 
+    public class LoadingViewHolder extends RecyclerView.ViewHolder {
+        private ProgressBar mProgressBar;
+
+        public LoadingViewHolder(View itemView) {
+            super(itemView);
+            mProgressBar = itemView.findViewById(R.id.loading_progress);
+        }
+    }
+
+    // to handle item clicked
+    public interface OnItemListener{
+        void onItemClicked(int position);
+    }
+
     //Helpers
+    public void setList(List<SingleItem> list){
+        this.list = list;
+        notifyDataSetChanged();
+    }
+
     public void addLoadingFooter() {
         isLoadingAdded = true;
         SingleItem footer = new SingleItem();
@@ -114,21 +127,5 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             }
         }
 
-    }
-
-
-
-    //ViewHolders
-    public class LoadingViewHolder extends RecyclerView.ViewHolder {
-        private ProgressBar mProgressBar;
-
-        public LoadingViewHolder(View itemView) {
-            super(itemView);
-            mProgressBar = itemView.findViewById(R.id.loading_progress);
-        }
-    }
-
-    public interface OnItemListener{
-        void onItemClicked(int position);
     }
 }

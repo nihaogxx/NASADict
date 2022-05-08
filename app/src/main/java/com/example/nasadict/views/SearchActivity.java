@@ -1,13 +1,11 @@
 package com.example.nasadict.views;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,33 +32,31 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         //ViewModel
         mResultViewModel = new ViewModelProvider(this).get(SearchResultViewModel.class);
         mResultViewModel.init();
+
+        // observe search result list
         mResultViewModel.getList().observe(this, singleItems -> {
             mSearchResultAdapter.setList(singleItems);
+
             if (mResultViewModel.getPage().getValue() == 1){ // new search
                 mRecyclerView.scrollToPosition(0);
             }
-
             if(singleItems.size() == 0){
                 Toast.makeText(this, "No result found", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // observe query
         mResultViewModel.getQuery().observe(this, query -> mResultViewModel.newSearch(query));
-        mResultViewModel.getLoading().observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean isLoading) {
-                Log.d(TAG, "observer: is loading: " + isLoading);
+
+        // observe loading
+        mResultViewModel.getLoading().observe(this, isLoading -> {
                 if (isLoading) {
                     mSearchResultAdapter.addLoadingFooter();
                 }
                 else mSearchResultAdapter.removeLoadingFooter();
-            }
         });
+        // init recyclerView
         initRecyclerView();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
     }
 
     @Override
@@ -79,7 +75,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         @Override
         public boolean onQueryTextSubmit(String query) {
             mSearchView.clearFocus();
-            // do search
+            // reset query and do search
             mResultViewModel.getQuery().setValue(query);
             return true;
         }
@@ -95,13 +91,12 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(linearLayoutManager);
         mRecyclerView.setAdapter(mSearchResultAdapter);
+        // set up scroll behavior for pagination
         mRecyclerView.addOnScrollListener(new PaginationScrollListener(linearLayoutManager) {
             @Override
             protected void loadMoreItems() {
                 mResultViewModel.nextPage();
-                Log.d(TAG, "load more is called");
             }
-
             @Override
             public boolean isLoading() {
                 return mResultViewModel.getLoading().getValue();
