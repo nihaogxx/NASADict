@@ -20,14 +20,15 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class SearchRepository {
     private static SearchRepository instance;
     private MutableLiveData<List<SingleItem>> dataSet = new MutableLiveData<>();
-    private static String URL = "https://images-api.nasa.gov/";
-    private static String TAG = "Repository";
+    private MutableLiveData<Boolean> mLoading = new MutableLiveData<>();
+    private static final String URL = "https://images-api.nasa.gov/";
+    private static final String TAG = "Repository";
 
-    Retrofit retrofit = new Retrofit.Builder()
+    private NASARetrofitService nasaRetrofitService = new Retrofit.Builder()
             .baseUrl(URL)
             .addConverterFactory(GsonConverterFactory.create())
-            .build();
-    NASARetrofitService nasaRetrofitService = retrofit.create(NASARetrofitService.class);
+            .build().create(NASARetrofitService.class);
+
 
     public static SearchRepository getInstance(){
         if(instance == null){
@@ -35,12 +36,13 @@ public class SearchRepository {
         }
         return instance;
     }
-    public void getSearchResult(String query){
+    public void getSearchResult(String query, int page, boolean isNewResult){
 
-        Call<ResponseDTO> call = nasaRetrofitService.search(query);
+        Call<ResponseDTO> call = nasaRetrofitService.search(query, page);
         call.enqueue(new Callback<ResponseDTO>() {
             @Override
             public void onResponse(Call<ResponseDTO> call, retrofit2.Response<ResponseDTO> response) {
+                Log.d(TAG, response.toString());
                 if(response.isSuccessful() && response.body() != null){
                     ArrayList<SingleItemDTO> items = response.body().getCollection().getItems();
                     List<SingleItem> data = new ArrayList<>();
@@ -50,10 +52,17 @@ public class SearchRepository {
                         String date_created = singleItemDTO.getData().get(0).getDate_created();
                         String image = singleItemDTO.getLinks().get(0).getHref();
                         SingleItem singleItem = new SingleItem(image, title, description, date_created);
-                        Log.d(TAG, "new item " + singleItem.getTitle());
                         data.add(singleItem);
                     }
-                    dataSet.setValue(data);
+                    if(isNewResult){
+                        dataSet.setValue(data);
+                    }
+                    else {
+                        List<SingleItem> current = dataSet.getValue();
+                        current.addAll(data);
+                        dataSet.setValue(current);
+                    }
+                    mLoading.setValue(false);
                 }
                 else {
                     Log.d(TAG, "onResponse: " + response);
@@ -70,5 +79,9 @@ public class SearchRepository {
 
     public LiveData<List<SingleItem>> getDataSet() {
         return dataSet;
+    }
+
+    public MutableLiveData<Boolean> getLoading() {
+        return mLoading;
     }
 }

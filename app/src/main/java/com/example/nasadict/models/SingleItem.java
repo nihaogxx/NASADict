@@ -16,11 +16,14 @@ public class SingleItem implements Parcelable {
         this.date_created = date_created;
     }
 
+    public SingleItem() {
+    }
+
     protected SingleItem(Parcel in) {
-        image = in.readString();
         title = in.readString();
         description = in.readString();
         date_created = in.readString();
+        image = in.readString();
     }
 
     public static final Creator<SingleItem> CREATOR = new Creator<SingleItem>() {
@@ -35,6 +38,18 @@ public class SingleItem implements Parcelable {
         }
     };
 
+    @Override
+    public int describeContents() {
+        return hashCode();
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(image);
+        parcel.writeString(title);
+        parcel.writeString(description);
+        parcel.writeString(date_created);
+    }
     public void setImage(String image) {
         this.image = image;
     }
@@ -65,18 +80,5 @@ public class SingleItem implements Parcelable {
 
     public String getDate_created() {
         return date_created;
-    }
-
-    @Override
-    public int describeContents() {
-        return hashCode();
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(image);
-        parcel.writeString(title);
-        parcel.writeString(description);
-        parcel.writeString(date_created);
     }
 }

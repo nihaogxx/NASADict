@@ -3,30 +3,26 @@ package com.example.nasadict.views;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-
-import androidx.annotation.NonNull;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.nasadict.R;
 import com.example.nasadict.adapters.SearchResultAdapter;
-import com.example.nasadict.models.SingleItem;
+import com.example.nasadict.utils.PaginationScrollListener;
 import com.example.nasadict.viewmodels.SearchResultViewModel;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class SearchActivity extends AppCompatActivity implements SearchResultAdapter.OnItemListener {
-    private String mQuery;
     private RecyclerView mRecyclerView;
     private SearchResultAdapter mSearchResultAdapter;
     private SearchResultViewModel mResultViewModel;
     private SearchView mSearchView;
+    private static final String TAG = "SearchActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +34,27 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         //ViewModel
         mResultViewModel = new ViewModelProvider(this).get(SearchResultViewModel.class);
         mResultViewModel.init();
-        mResultViewModel.getList().observe(this, singleItems -> mSearchResultAdapter.setList(singleItems));
+        mResultViewModel.getList().observe(this, singleItems -> {
+            mSearchResultAdapter.setList(singleItems);
+            if (mResultViewModel.getPage().getValue() == 1){ // new search
+                mRecyclerView.scrollToPosition(0);
+            }
+
+            if(singleItems.size() == 0){
+                Toast.makeText(this, "No result found", Toast.LENGTH_SHORT).show();
+            }
+        });
+        mResultViewModel.getQuery().observe(this, query -> mResultViewModel.newSearch(query));
+        mResultViewModel.getLoading().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isLoading) {
+                Log.d(TAG, "observer: is loading: " + isLoading);
+                if (isLoading) {
+                    mSearchResultAdapter.addLoadingFooter();
+                }
+                else mSearchResultAdapter.removeLoadingFooter();
+            }
+        });
         initRecyclerView();
     }
 
@@ -62,10 +78,9 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     SearchView.OnQueryTextListener mOnQueryTextListener = new SearchView.OnQueryTextListener() {
         @Override
         public boolean onQueryTextSubmit(String query) {
-            mQuery = query;
             mSearchView.clearFocus();
             // do search
-            mResultViewModel.getSearchResult(query);
+            mResultViewModel.getQuery().setValue(query);
             return true;
         }
 
@@ -76,24 +91,29 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     };
 
     private void initRecyclerView() {
-        mSearchResultAdapter = new SearchResultAdapter(this, new ArrayList<>(), this);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mSearchResultAdapter = new SearchResultAdapter(this, this);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(linearLayoutManager);
         mRecyclerView.setAdapter(mSearchResultAdapter);
-    }
+        mRecyclerView.addOnScrollListener(new PaginationScrollListener(linearLayoutManager) {
+            @Override
+            protected void loadMoreItems() {
+                mResultViewModel.nextPage();
+                Log.d(TAG, "load more is called");
+            }
 
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString("query", mQuery);
+            @Override
+            public boolean isLoading() {
+                return mResultViewModel.getLoading().getValue();
+            }
+        });
+
     }
 
     @Override
     public void onItemClicked(int position) {
-        ItemDetailFragment itemDetailFragment = new ItemDetailFragment();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("item", mResultViewModel.getList().getValue().get(position));
-        itemDetailFragment.setArguments(bundle);
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.add(R.id.recyclerview, itemDetailFragment, "SearchActivity").addToBackStack(null).commit();
+        ItemDetailFragment itemDetailFragment = ItemDetailFragment.newInstance(mResultViewModel.getList().getValue().get(position));
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().add(R.id.recyclerview_container, itemDetailFragment, TAG).addToBackStack(null).commit();
     }
 }
