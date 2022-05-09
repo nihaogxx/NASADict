@@ -6,7 +6,7 @@ This is an application that exposes the search functionality of the NASA Image a
 
 - Retrofit2 + Gson Convertor
 
-I used Retrofit2 for retreiving data from NASA server. 
+I used Retrofit2 for retrieving data from NASA server. 
 
 It takes a bit of initial setup, but after that deading with data becomes easy.
 
@@ -22,7 +22,7 @@ I used Picasso for image loading.
 
 I used LifeCycle with LiveData and ViewModel for lifecycle management and reactive programming.
 These libraries are released by Android (so is well supported) to help you implement clean architecture in your app, based primarily on MVVM, which is the architecture used in this project.
-Since LiveData is lifecyle-aware, you don't need to manually manage the observation of LiveData, so free from lifecylce management.
+Since LiveData is lifecycle-aware, you don't need to manually manage the observation of LiveData, so free from lifecycle management.
 By using ViewModel, the UI-related data survive across configuration changes
 
 **Architecture**
