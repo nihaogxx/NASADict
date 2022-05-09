@@ -21,8 +21,11 @@ I used Picasso for image loading.
 - LifeCycle
 
 I used LifeCycle with LiveData and ViewModel for lifecycle management and reactive programming.
+
 These libraries are released by Android (so is well supported) to help you implement clean architecture in your app, based primarily on MVVM, which is the architecture used in this project.
+
 Since LiveData is lifecycle-aware, you don't need to manually manage the observation of LiveData, so free from lifecycle management.
+
 By using ViewModel, the UI-related data survive across configuration changes
 
 **Architecture**
